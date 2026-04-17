@@ -5,6 +5,7 @@ export interface NavItem {
 
 export interface NavbarProps {
   items?: NavItem[];
+  onSearch?: (query: string) => void;
 }
 
 export interface MobileMenuProps {

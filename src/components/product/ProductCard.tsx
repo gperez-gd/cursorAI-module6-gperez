@@ -27,6 +27,7 @@ export default function ProductCard({
 
   return (
     <article
+      data-testid="product-card"
       className="group bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-xl
         transition-all duration-300 overflow-hidden flex flex-col
         hover:-translate-y-1"

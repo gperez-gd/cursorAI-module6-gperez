@@ -5,7 +5,6 @@ import UserDropdown from './UserDropdown';
 import { getActiveLinkClasses } from '../../utils/activeLink';
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '#/' },
   { label: 'Products', href: '#/products' },
   { label: 'Dashboard', href: '#/dashboard' },
   { label: 'Analytics', href: '#/analytics' },
@@ -13,7 +12,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: 'Feed', href: '#/feed' },
 ];
 
-export default function Navbar({ items = DEFAULT_NAV_ITEMS }: NavbarProps) {
+export default function Navbar({ items = DEFAULT_NAV_ITEMS, onSearch }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -33,20 +32,19 @@ export default function Navbar({ items = DEFAULT_NAV_ITEMS }: NavbarProps) {
     return () => window.removeEventListener('hashchange', handler);
   }, []);
 
-  const handleSearch = useCallback((value: string) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      // Stubbed async search — connect to real API here
-      await Promise.resolve();
-      console.log('[Search]', value);
-    }, 300);
-  }, []);
+  // Keep a ref so the debounce timeout always calls the latest onSearch,
+  // regardless of when the closure was captured.
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => { onSearchRef.current = onSearch; }, [onSearch]);
 
-  function onSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearchValue(val);
-    handleSearch(val);
-  }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onSearchRef.current?.(val);
+    }, 300);
+  }, []);
 
   return (
     <>
@@ -110,7 +108,7 @@ export default function Navbar({ items = DEFAULT_NAV_ITEMS }: NavbarProps) {
                   type="search"
                   placeholder="Search…"
                   value={searchValue}
-                  onChange={onSearchChange}
+                  onChange={handleSearchChange}
                   className="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border border-transparent
                     rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
                     text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500

@@ -26,8 +26,8 @@ Objective: Build a responsive navigation bar with dropdown menus.
 
 Core Prompt:
 Create a responsive navigation bar component with logo, menu items, search bar, and user profile dropdown. Include mobile hamburger menu. Use TypeScript and Tailwind 3 CSS. Make it sticky on scroll with smooth animations.
-Add a search functionality placeholder:
-“Create a React search bar component with a placeholder ‘Search…’. It should manage input state, trigger a debounced search handler, and call a stubbed async function that logs the query. Structure the code so it can be easily connected to a real API later.”
+Add real search functionality to the navigation bar:
+"Create a React search bar component with a placeholder 'Search…'. It should manage input state, trigger a debounced search handler, and navigate the user to the Products page (/#/products) while applying the typed query as a live product filter. The search must filter products by both title and description (case-insensitive). Use a shared state lifted to App.tsx so the nav search query is passed down to ProductDemo as a prop and synced via useEffect. The nav search and the in-page product-search (id='product-search', data-testid='search-input') must produce identical filtering results."
 
 Implement smooth scroll behavior :
     Implement smooth scroll behavior using TypeScript in a project that uses Tailwind CSS v4 and no explicit use of frontend frameworks.
