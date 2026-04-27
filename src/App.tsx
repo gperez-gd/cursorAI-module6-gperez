@@ -9,6 +9,9 @@ import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 import Kanban from './pages/Kanban';
 import SocialFeed from './pages/SocialFeed';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Initialize dark mode from stored preference
 function initTheme() {
@@ -19,12 +22,18 @@ function initTheme() {
 }
 initTheme();
 
-type Route = '/' | '/products' | '/dashboard' | '/settings' | '/analytics' | '/kanban' | '/feed';
+type Route = '/' | '/products' | '/dashboard' | '/settings' | '/analytics' | '/kanban' | '/feed' | '/login' | '/register';
 
-const VALID_ROUTES: Route[] = ['/', '/products', '/dashboard', '/settings', '/analytics', '/kanban', '/feed'];
+const VALID_ROUTES: Route[] = ['/', '/products', '/dashboard', '/settings', '/analytics', '/kanban', '/feed', '/login', '/register'];
 
 // Pages that use DashboardLayout (have their own header + sidebar)
 const DASHBOARD_PAGES: Route[] = ['/dashboard', '/settings', '/analytics', '/kanban'];
+
+// Pages that require auth
+const PROTECTED_PAGES: Route[] = ['/dashboard', '/settings', '/analytics', '/kanban', '/feed'];
+
+// Pages that hide the top Navbar/Footer entirely
+const BARE_PAGES: Route[] = ['/login', '/register'];
 
 function getRoute(hash: string): Route {
   const path = hash.replace(/^#/, '') || '/products';
@@ -44,13 +53,16 @@ function usePage(): Route {
 }
 
 function PageContent({ route, navSearch }: { route: Route; navSearch: string }) {
+  const protect = (el: JSX.Element) => <ProtectedRoute>{el}</ProtectedRoute>;
   switch (route) {
+    case '/login':    return <Login />;
+    case '/register': return <Register />;
     case '/products': return <ProductDemo navSearchQuery={navSearch} />;
-    case '/dashboard': return <Dashboard />;
-    case '/settings': return <Settings />;
-    case '/analytics': return <Analytics />;
-    case '/kanban': return <Kanban />;
-    case '/feed': return <SocialFeed />;
+    case '/dashboard': return protect(<Dashboard />);
+    case '/settings':  return protect(<Settings />);
+    case '/analytics': return protect(<Analytics />);
+    case '/kanban':    return protect(<Kanban />);
+    case '/feed':      return protect(<SocialFeed />);
     default: return <ProductDemo navSearchQuery={navSearch} />;
   }
 }
@@ -58,6 +70,7 @@ function PageContent({ route, navSearch }: { route: Route; navSearch: string }) 
 export default function App() {
   const route = usePage();
   const isDashboardPage = DASHBOARD_PAGES.includes(route);
+  const isBarePage = BARE_PAGES.includes(route);
   const [navSearch, setNavSearch] = useState('');
 
   useEffect(() => {
@@ -70,6 +83,14 @@ export default function App() {
       window.location.hash = '#/products';
     }
   }, []);
+
+  if (isBarePage) {
+    return (
+      <ToastProvider>
+        <PageContent route={route} navSearch={navSearch} />
+      </ToastProvider>
+    );
+  }
 
   return (
     <ToastProvider>
