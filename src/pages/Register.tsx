@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { api } from '../api/client';
 
 interface FormData {
   firstName: string;
@@ -44,6 +45,7 @@ export default function Register() {
   const [form, setForm] = useState<FormData>(EMPTY);
   const [errors, setErrors] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   function update(field: keyof FormData, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -62,9 +64,31 @@ export default function Register() {
     setStep(s => s - 1);
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
+    setErrors([]);
+    setLoading(true);
+    try {
+      await api.post('/auth/register', {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        username: form.username,
+        password: form.password,
+      });
+      setSubmitted(true);
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string; message?: string } } })
+          ?.response?.data?.error ??
+        (err as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message ??
+        'Registration failed. Please try again.';
+      setErrors([message]);
+      setStep(1);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const progress = Math.round(((step - 1) / (STEPS.length - 1)) * 100);
@@ -280,9 +304,10 @@ export default function Register() {
               <button
                 data-testid="submit"
                 type="submit"
-                className="flex-1 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 text-sm transition-colors"
+                disabled={loading}
+                className="flex-1 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-semibold py-2.5 text-sm transition-colors"
               >
-                Create account
+                {loading ? 'Creating account…' : 'Create account'}
               </button>
             </div>
           </form>

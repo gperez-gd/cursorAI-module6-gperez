@@ -45,6 +45,8 @@ npx playwright test tests/search.spec.ts
 npx playwright test tests/filters.spec.ts
 npx playwright test tests/sort.spec.ts
 npx playwright test tests/pagination.spec.ts
+npx playwright test tests/cart.spec.ts
+npx playwright test tests/checkout.spec.ts
 ```
 
 ### Run tests matching a name pattern
@@ -117,12 +119,45 @@ The report includes pass/fail status, screenshots on failure, and traces on the 
 | `tests/validation.spec.ts` | Required field errors, email format validation, password strength rules, password mismatch, long input handling, minimum password length |
 | `tests/accessibility.spec.ts` | Input labels, `aria-describedby` on error messages, `role="alert"`, progress bar `aria-valuenow`, `aria-current`, keyboard navigation (Tab / Enter), focus management, `aria-live` regions, semantic `<form>` element |
 | `tests/registration.spec.ts` | Full multi-step registration success, data persistence across steps, loading state during submit (mocked `**/api/register`), API failure error handling |
+| `tests/cart.spec.ts` | Empty cart state, Add to Cart flow, navbar badge, cart summary link, quantity controls (+/−), remove item, discount codes (valid/invalid), clear cart |
+| `tests/checkout.spec.ts` | Empty cart redirect, shipping form validation, advance to payment step, payment form validation, card format helpers, place order, confirmation page (order number, delivery, total), cart cleared after order, Continue Shopping navigation |
 
 ---
 
 ## Page Object Models
 
 Page Object Models (POMs) live in `pages/` and provide reusable, strongly-typed helpers for interacting with the UI in tests.
+
+### `CartPage` (`pages/CartPage.ts`)
+
+Encapsulates interactions with the Cart page (`/#/cart`).
+
+| Method / Property | Description |
+|---|---|
+| `goto()` | Navigate to `/#/cart` |
+| `getItemCount()` | Count visible cart items |
+| `removeFirstItem()` | Click Remove on the first cart item |
+| `increaseQty(index)` | Click `+` on the nth item |
+| `decreaseQty(index)` | Click `−` on the nth item |
+| `getQtyValue(index)` | Return the displayed quantity number |
+| `applyDiscount(code)` | Fill and submit a discount code |
+| `cartItems` | Locator for all cart item rows |
+| `proceedToCheckout` | Locator for the "Proceed to Checkout" button |
+| `subtotal` / `cartTotal` | Locators for the price summary values |
+
+### `CheckoutPage` (`pages/CheckoutPage.ts`)
+
+Encapsulates interactions with the Checkout page (`/#/checkout`).
+
+| Method / Property | Description |
+|---|---|
+| `goto()` | Navigate to `/#/checkout` |
+| `fillShipping(data)` | Fill the shipping address form |
+| `submitShipping()` | Click "Continue to Payment" |
+| `fillPayment(data)` | Fill card name, number, expiry, CVV |
+| `submitOrder()` | Click "Place Order" button |
+| `shippingForm` / `paymentForm` | Locators for each form |
+| `placeOrderButton` | Locator for the submit button |
 
 ### `SearchPage` (`pages/SearchPage.ts`)
 
@@ -196,6 +231,8 @@ Key methods:
 
 Tests locate elements through `data-testid` attributes rather than CSS classes or text content, making selectors resilient to styling changes.
 
+### Product Catalog
+
 | `data-testid` | Element |
 |---|---|
 | `search-input` | Product search text field |
@@ -209,6 +246,70 @@ Tests locate elements through `data-testid` attributes rather than CSS classes o
 | `prev-page` | Previous page button |
 | `next-page` | Next page button |
 | `page-indicator` | Current page / total pages label |
+| `cart-summary-link` | "N items in cart — View Cart →" link in product header |
+
+### Navbar
+
+| `data-testid` | Element |
+|---|---|
+| `cart-nav-button` | Cart icon button in the top navigation bar |
+| `cart-badge` | Red badge showing item count on the cart button |
+| `mobile-cart-link` | Cart entry in the mobile slide-down menu |
+| `sign-out-btn` | Sign out button inside the user dropdown |
+
+### Cart Page (`/#/cart`)
+
+| `data-testid` | Element |
+|---|---|
+| `cart-item` | Individual cart row (`<article>`) |
+| `qty-increase` | `+` quantity button |
+| `qty-decrease` | `−` quantity button |
+| `qty-value` | Displayed quantity number |
+| `remove-item` | Remove link for a cart item |
+| `clear-cart` | "Clear cart" button |
+| `discount-input` | Discount code text field |
+| `apply-discount` | Apply discount button |
+| `discount-amount` | Displayed discount line in totals |
+| `subtotal` | Subtotal value |
+| `cart-total` | Grand total value |
+| `proceed-to-checkout` | "Proceed to Checkout" link/button |
+| `continue-shopping-empty` | "Browse Products" button on empty cart |
+
+### Checkout Page (`/#/checkout`)
+
+| `data-testid` | Element |
+|---|---|
+| `shipping-form` | Shipping address `<form>` |
+| `ship-first-name` | First name input |
+| `ship-last-name` | Last name input |
+| `ship-email` | Email (shipping notifications) |
+| `ship-address` | Street address input |
+| `ship-city` | City input |
+| `ship-state` | State/province input |
+| `ship-zip` | ZIP code input |
+| `ship-country` | Country select |
+| `continue-to-payment` | "Continue to Payment" button |
+| `payment-form` | Payment `<form>` |
+| `card-name` | Name on card input |
+| `card-number` | Card number input |
+| `card-expiry` | Expiry date input (MM/YY) |
+| `card-cvc` | CVV input |
+| `place-order` | "Place Order" submit button |
+
+### Order Confirmation Page (`/#/checkout/success`)
+
+| `data-testid` | Element |
+|---|---|
+| `order-confirmation` | Success banner container |
+| `confirmation-number` | Order confirmation number text |
+| `estimated-delivery` | Estimated delivery date text |
+| `order-total` | Total charged amount |
+| `continue-shopping` | "Continue Shopping" button |
+
+### Registration
+
+| `data-testid` | Element |
+|---|---|
 | `first-name` | Registration step 1 — first name input |
 | `last-name` | Registration step 1 — last name input |
 | `email` | Registration step 1 — email input |

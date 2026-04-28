@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactElement } from 'react';
 import Navbar from './components/nav/Navbar';
 import Footer from './components/layout/Footer';
 import { ToastProvider } from './components/ui/ToastProvider';
@@ -11,6 +11,9 @@ import Kanban from './pages/Kanban';
 import SocialFeed from './pages/SocialFeed';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Initialize dark mode from stored preference
@@ -22,15 +25,12 @@ function initTheme() {
 }
 initTheme();
 
-type Route = '/' | '/products' | '/dashboard' | '/settings' | '/analytics' | '/kanban' | '/feed' | '/login' | '/register';
+type Route = '/' | '/products' | '/dashboard' | '/settings' | '/analytics' | '/kanban' | '/feed' | '/login' | '/register' | '/cart' | '/checkout' | '/checkout/success';
 
-const VALID_ROUTES: Route[] = ['/', '/products', '/dashboard', '/settings', '/analytics', '/kanban', '/feed', '/login', '/register'];
+const VALID_ROUTES: Route[] = ['/', '/products', '/dashboard', '/settings', '/analytics', '/kanban', '/feed', '/login', '/register', '/cart', '/checkout', '/checkout/success'];
 
 // Pages that use DashboardLayout (have their own header + sidebar)
 const DASHBOARD_PAGES: Route[] = ['/dashboard', '/settings', '/analytics', '/kanban'];
-
-// Pages that require auth
-const PROTECTED_PAGES: Route[] = ['/dashboard', '/settings', '/analytics', '/kanban', '/feed'];
 
 // Pages that hide the top Navbar/Footer entirely
 const BARE_PAGES: Route[] = ['/login', '/register'];
@@ -53,16 +53,19 @@ function usePage(): Route {
 }
 
 function PageContent({ route, navSearch }: { route: Route; navSearch: string }) {
-  const protect = (el: JSX.Element) => <ProtectedRoute>{el}</ProtectedRoute>;
+  const protect = (el: ReactElement) => <ProtectedRoute>{el}</ProtectedRoute>;
   switch (route) {
-    case '/login':    return <Login />;
-    case '/register': return <Register />;
-    case '/products': return <ProductDemo navSearchQuery={navSearch} />;
-    case '/dashboard': return protect(<Dashboard />);
-    case '/settings':  return protect(<Settings />);
-    case '/analytics': return protect(<Analytics />);
-    case '/kanban':    return protect(<Kanban />);
-    case '/feed':      return protect(<SocialFeed />);
+    case '/login':             return <Login />;
+    case '/register':          return <Register />;
+    case '/products':          return <ProductDemo navSearchQuery={navSearch} />;
+    case '/cart':              return <CartPage />;
+    case '/checkout':          return <CheckoutPage />;
+    case '/checkout/success':  return <OrderConfirmationPage />;
+    case '/dashboard':         return protect(<Dashboard />);
+    case '/settings':          return protect(<Settings />);
+    case '/analytics':         return protect(<Analytics />);
+    case '/kanban':             return protect(<Kanban />);
+    case '/feed':              return protect(<SocialFeed />);
     default: return <ProductDemo navSearchQuery={navSearch} />;
   }
 }

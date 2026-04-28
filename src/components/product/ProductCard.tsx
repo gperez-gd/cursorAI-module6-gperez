@@ -71,6 +71,7 @@ export default function ProductCard({
           <button
             onClick={handleAddToCart}
             aria-label={`Add ${title} to cart`}
+            data-testid="add-to-cart-btn"
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm
               transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
               ${added

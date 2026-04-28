@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import ProductCard from '../components/product/ProductCard';
 import type { ProductCardProps } from '../types/product';
+import { useCart } from '../context/useCart';
 
 interface Product extends ProductCardProps {
   category: string;
@@ -103,23 +104,23 @@ interface ProductDemoProps {
 }
 
 export default function ProductDemo({ navSearchQuery = '' }: ProductDemoProps) {
+  const { addItem, itemCount } = useCart();
   const [search, setSearch] = useState(navSearchQuery);
   const [category, setCategory] = useState<string>('All');
   const [priceRange, setPriceRange] = useState<PriceRange>('all');
   const [sort, setSort] = useState<SortKey>('featured');
   const [page, setPage] = useState(1);
-  const [cartItems, setCartItems] = useState<string[]>([]);
+  const [lastSyncedNavSearch, setLastSyncedNavSearch] = useState(navSearchQuery);
 
-  useEffect(() => {
-    if (navSearchQuery !== undefined) {
-      setSearch(navSearchQuery);
-      setPage(1);
-    }
-  }, [navSearchQuery]);
+  if (lastSyncedNavSearch !== navSearchQuery) {
+    setLastSyncedNavSearch(navSearchQuery);
+    setSearch(navSearchQuery);
+    setPage(1);
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let result = ALL_PRODUCTS.filter(p => {
+    const result = ALL_PRODUCTS.filter(p => {
       const matchesSearch = !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
       const matchesCategory = category === 'All' || p.category === category;
       const matchesPrice = matchesPriceRange(p.price, priceRange);
@@ -146,7 +147,10 @@ export default function ProductDemo({ navSearchQuery = '' }: ProductDemoProps) {
   }
 
   function handleAddToCart(id: string) {
-    setCartItems(prev => [...prev, id]);
+    const product = ALL_PRODUCTS.find(p => p.id === id);
+    if (product) {
+      addItem({ id: product.id, title: product.title, price: product.price, image: product.image });
+    }
   }
 
   const hasActiveFilters = search.trim() !== '' || category !== 'All' || priceRange !== 'all';
@@ -163,19 +167,21 @@ export default function ProductDemo({ navSearchQuery = '' }: ProductDemoProps) {
           <p className="text-gray-500 dark:text-gray-400 text-lg max-w-xl mx-auto">
             Discover our curated collection of premium products, crafted for quality and designed to impress.
           </p>
-          {cartItems.length > 0 && (
-            <div
-              className="inline-flex items-center gap-2 mt-4 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium"
-              role="status"
-              aria-live="polite"
+          {itemCount > 0 && (
+            <a
+              href="#/cart"
+              data-testid="cart-summary-link"
+              className="inline-flex items-center gap-2 mt-4 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium
+                hover:bg-primary/20 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label={`View cart — ${itemCount} item${itemCount !== 1 ? 's' : ''}`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M3 3h2l.4 2M7 13h10l4-4H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-              {cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in cart
-            </div>
+              {itemCount} item{itemCount !== 1 ? 's' : ''} in cart — View Cart →
+            </a>
           )}
         </header>
 
@@ -324,8 +330,19 @@ export default function ProductDemo({ navSearchQuery = '' }: ProductDemoProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pageProducts.map(({ category: _cat, ...product }) => (
-                <ProductCard key={product.id} {...product} onAddToCart={handleAddToCart} />
+              {pageProducts.map(p => (
+                <ProductCard
+                  key={p.id}
+                  id={p.id}
+                  image={p.image}
+                  title={p.title}
+                  description={p.description}
+                  price={p.price}
+                  rating={p.rating}
+                  reviewCount={p.reviewCount}
+                  badge={p.badge}
+                  onAddToCart={handleAddToCart}
+                />
               ))}
             </div>
           )}

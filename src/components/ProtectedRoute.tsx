@@ -1,14 +1,10 @@
-import { ReactNode, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { type ReactNode, useEffect } from 'react';
+import { useAuth } from '../context/useAuth';
 
 interface Props {
   children: ReactNode;
 }
 
-/**
- * Wraps any page that requires authentication.
- * Redirects to /#/login if no valid token is present.
- */
 export default function ProtectedRoute({ children }: Props) {
   const { isAuthenticated } = useAuth();
 
@@ -18,7 +14,10 @@ export default function ProtectedRoute({ children }: Props) {
     }
   }, [isAuthenticated]);
 
-  if (!isAuthenticated) return null;
+  // Gate rendering directly from source of truth
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return <>{children}</>;
 }

@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import type { MobileMenuProps } from '../../types/nav';
 import { getActiveLinkClasses } from '../../utils/activeLink';
+import { useCart } from '../../context/useCart';
 
 export default function MobileMenu({ items, isOpen, onClose }: MobileMenuProps) {
+  const { itemCount } = useCart();
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -26,6 +28,18 @@ export default function MobileMenu({ items, isOpen, onClose }: MobileMenuProps) 
         aria-label="Mobile navigation"
       >
         <ul className="flex flex-col py-2" role="list">
+          <li>
+            <a
+              href="#/cart"
+              onClick={onClose}
+              data-testid="mobile-cart-link"
+              aria-current={window.location.hash === '#/cart' ? 'page' : undefined}
+              className={`block px-5 py-3 text-base font-medium transition-colors
+                ${getActiveLinkClasses('/cart')}`}
+            >
+              Cart{itemCount > 0 ? ` (${itemCount})` : ''}
+            </a>
+          </li>
           {items.map(item => {
             const active = window.location.hash === item.href || (item.href === '#/' && !window.location.hash);
             return (

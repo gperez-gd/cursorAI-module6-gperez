@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { UserDropdownProps } from '../../types/nav';
+import { useAuth } from '../../context/useAuth';
 
 function getInitials(name: string): string {
   return name
@@ -11,14 +11,16 @@ function getInitials(name: string): string {
 }
 
 const dropdownItems = [
-  { label: 'Your Profile', href: '#/profile' },
   { label: 'Settings', href: '#/settings' },
   { label: 'Analytics', href: '#/analytics' },
 ];
 
-export default function UserDropdown({ name, avatarUrl }: UserDropdownProps) {
+export default function UserDropdown() {
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const displayName = user?.name ?? user?.email ?? 'Account';
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -34,24 +36,25 @@ export default function UserDropdown({ name, avatarUrl }: UserDropdownProps) {
     if (e.key === 'Escape') setOpen(false);
   }
 
+  function handleSignOut() {
+    setOpen(false);
+    logout();
+  }
+
   return (
     <div ref={ref} className="relative" onKeyDown={handleKeyDown}>
       <button
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`User menu for ${name}`}
+        aria-label={`User menu for ${displayName}`}
         className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-transform hover:scale-105"
       >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center">
-            {getInitials(name)}
-          </div>
-        )}
+        <div className="w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center">
+          {getInitials(displayName)}
+        </div>
         <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-200">
-          {name}
+          {displayName}
         </span>
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -69,7 +72,10 @@ export default function UserDropdown({ name, avatarUrl }: UserDropdownProps) {
             py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
         >
           <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{name}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{displayName}</p>
+            {user?.email && user.name && (
+              <p className="text-xs text-gray-400 truncate">{user.email}</p>
+            )}
           </div>
           {dropdownItems.map(item => (
             <a
@@ -86,8 +92,9 @@ export default function UserDropdown({ name, avatarUrl }: UserDropdownProps) {
           <div className="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
             <button
               role="menuitem"
+              data-testid="sign-out-btn"
               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              onClick={() => setOpen(false)}
+              onClick={handleSignOut}
             >
               Sign out
             </button>

@@ -3,6 +3,7 @@ import type { NavbarProps, NavItem } from '../../types/nav';
 import MobileMenu from './MobileMenu';
 import UserDropdown from './UserDropdown';
 import { getActiveLinkClasses } from '../../utils/activeLink';
+import { useCart } from '../../context/useCart';
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: 'Products', href: '#/products' },
@@ -13,6 +14,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Navbar({ items = DEFAULT_NAV_ITEMS, onSearch }: NavbarProps) {
+  const { itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -118,7 +120,32 @@ export default function Navbar({ items = DEFAULT_NAV_ITEMS, onSearch }: NavbarPr
             </div>
 
             <div className="flex items-center gap-2">
-              <UserDropdown name="Alex Johnson" />
+              {/* Cart button */}
+              <a
+                href="#/cart"
+                aria-label={itemCount > 0 ? `Cart, ${itemCount} items` : 'Cart'}
+                data-testid="cart-nav-button"
+                className="relative p-2 rounded-lg text-gray-600 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M3 3h2l.4 2M7 13h10l4-4H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                {itemCount > 0 && (
+                  <span
+                    data-testid="cart-badge"
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold
+                      rounded-full flex items-center justify-center px-1 leading-none"
+                    aria-hidden="true"
+                  >
+                    {itemCount > 99 ? '99+' : itemCount}
+                  </span>
+                )}
+              </a>
+
+              <UserDropdown />
 
               {/* Hamburger button */}
               <button

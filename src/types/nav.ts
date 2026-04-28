@@ -15,6 +15,6 @@ export interface MobileMenuProps {
 }
 
 export interface UserDropdownProps {
-  name: string;
+  name?: string;
   avatarUrl?: string;
 }
